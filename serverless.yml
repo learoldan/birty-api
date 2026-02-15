@@ -1,0 +1,171 @@
+service: birty-api
+
+frameworkVersion: '3'
+
+provider:
+    name: aws
+    runtime: nodejs20.x
+    region: 'eu-west-3'
+    stage: ${opt:stage, 'dev'}
+    memorySize: 128
+    timeout: 29
+    environment:
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+        NODE_ENV: ${self:provider.stage}
+
+        USER_POOL_ID:
+            Ref: CognitoUserPool
+
+        CLIENT_ID:
+            Ref: CognitoUserPoolClient
+
+        USERS_TABLE: ${self:service}-users-${self:provider.stage}
+    iam:
+        role:
+            statements:
+                - Effect: Allow
+                  Action:
+                      - dynamodb:PutItem
+                      - dynamodb:GetItem
+                      - dynamodb:UpdateItem
+                      - dynamodb:DeleteItem
+                  Resource:
+                      Fn::GetAtt:
+                          - UsersTable
+                          - Arn
+    httpApi:
+        authorizers:
+            cognitoAuthorizer:
+                type: jwt
+                identitySource: $request.header.Authorization
+                issuerUrl:
+                    Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
+                audience:
+                    - Ref: CognitoUserPoolClient
+
+plugins:
+    - serverless-offline
+    - serverless-esbuild
+
+custom:
+    esbuild:
+        bundle: true
+        minify: false
+        sourcemap: true
+        concurrency: 3
+        external:
+            - aws-sdk
+
+functions:
+    createUser: ${file(src/user/adapters/createUser/createUser.yml)}
+    deleteUser: ${file(src/user/adapters/deleteUser/deleteUser.yml)}
+    getUser: ${file(src/user/adapters/getUser/getUser.yml)}
+    updateUser: ${file(src/user/adapters/updateUser/updateUser.yml)}
+
+resources:
+    Resources:
+        # DynamoDB Table
+        UsersTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:service}-users-${self:provider.stage}
+                BillingMode: PAY_PER_REQUEST
+                AttributeDefinitions:
+                    - AttributeName: id
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: id
+                      KeyType: HASH
+                StreamSpecification:
+                    StreamViewType: NEW_AND_OLD_IMAGES
+                Tags:
+                    - Key: Environment
+                      Value: ${self:provider.stage}
+
+        # Cognito User Pool
+        CognitoUserPool:
+            Type: AWS::Cognito::UserPool
+            Properties:
+                UserPoolName: ${self:provider.stage}-birty-user-pool
+                UsernameAttributes:
+                    - email
+                AutoVerifiedAttributes:
+                    - email
+                EmailConfiguration:
+                    EmailSendingAccount: COGNITO_DEFAULT
+                Policies:
+                    PasswordPolicy:
+                        MinimumLength: 8
+                        RequireUppercase: true
+                        RequireLowercase: true
+                        RequireNumbers: true
+                        RequireSymbols: true
+                Schema:
+                    - Name: email
+                      AttributeDataType: String
+                      Mutable: false
+                      Required: true
+                    - Name: given_name
+                      AttributeDataType: String
+                      Mutable: true
+                      Required: false
+                    - Name: family_name
+                      AttributeDataType: String
+                      Mutable: true
+                      Required: false
+                UserPoolTags:
+                    Environment: ${self:provider.stage}
+
+        # Cognito User Pool Client
+        CognitoUserPoolClient:
+            Type: AWS::Cognito::UserPoolClient
+            Properties:
+                ClientName: ${self:provider.stage}-birty-client
+                UserPoolId:
+                    Ref: CognitoUserPool
+                ExplicitAuthFlows:
+                    - ALLOW_USER_PASSWORD_AUTH
+                    - ALLOW_REFRESH_TOKEN_AUTH
+                    - ALLOW_USER_SRP_AUTH
+                GenerateSecret: false
+                PreventUserExistenceErrors: ENABLED
+
+    Outputs:
+        UsersTableName:
+            Description: DynamoDB Users Table Name
+            Value:
+                Ref: UsersTable
+            Export:
+                Name: ${self:provider.stage}-UsersTableName
+
+        UsersTableArn:
+            Description: DynamoDB Users Table ARN
+            Value:
+                Fn::GetAtt:
+                    - UsersTable
+                    - Arn
+            Export:
+                Name: ${self:provider.stage}-UsersTableArn
+
+        CognitoUserPoolId:
+            Description: Cognito User Pool ID
+            Value:
+                Ref: CognitoUserPool
+            Export:
+                Name: ${self:provider.stage}-CognitoUserPoolId
+
+        CognitoUserPoolArn:
+            Description: Cognito User Pool ARN
+            Value:
+                Fn::GetAtt:
+                    - CognitoUserPool
+                    - Arn
+            Export:
+                Name: ${self:provider.stage}-CognitoUserPoolArn
+
+        CognitoUserPoolClientId:
+            Description: Cognito User Pool Client ID
+            Value:
+                Ref: CognitoUserPoolClient
+            Export:
+                Name: ${self:provider.stage}-CognitoUserPoolClientId

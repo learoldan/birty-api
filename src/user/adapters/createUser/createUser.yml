@@ -1,0 +1,7 @@
+handler: src/user/adapters/createUser/index.handler
+
+events:
+    - httpApi:
+          path: /users
+          method: post
+          authorizer: cognitoAuthorizer

@@ -1,0 +1,7 @@
+handler: src/user/adapters/deleteUser/index.handler
+
+events:
+    - httpApi:
+          path: /users/{id}
+          method: delete
+          authorizer: cognitoAuthorizer

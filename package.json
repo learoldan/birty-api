@@ -1,0 +1,46 @@
+{
+    "name": "birty-api",
+    "version": "1.0.0",
+    "description": "Serverless API with DynamoDB, Lambda, API Gateway and Cognito",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc",
+        "deploy": "serverless deploy",
+        "deploy:dev": "serverless deploy --stage dev",
+        "deploy:prod": "serverless deploy --stage prod",
+        "deploy:resources": "serverless deploy --stage ${STAGE:-dev}",
+        "deploy:user": "cd src/user && serverless deploy -c serverless.standalone.yml",
+        "deploy:user:dev": "cd src/user && serverless deploy -c serverless.standalone.yml --stage dev",
+        "deploy:user:prod": "cd src/user && serverless deploy -c serverless.standalone.yml --stage prod",
+        "remove": "serverless remove",
+        "remove:user": "cd src/user && serverless remove -c serverless.standalone.yml",
+        "offline": "serverless offline",
+        "info": "serverless info",
+        "info:user": "cd src/user && serverless info -c serverless.standalone.yml"
+    },
+    "keywords": [
+        "serverless",
+        "aws",
+        "lambda",
+        "dynamodb",
+        "cognito",
+        "typescript"
+    ],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.131",
+        "@types/node": "^20.11.5",
+        "@types/uuid": "^9.0.7",
+        "esbuild": "^0.27.3",
+        "serverless": "^3.38.0",
+        "serverless-esbuild": "^1.57.0",
+        "serverless-offline": "^13.3.3",
+        "typescript": "^5.3.3"
+    },
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.490.0",
+        "@aws-sdk/lib-dynamodb": "^3.490.0",
+        "uuid": "^9.0.1"
+    }
+}
