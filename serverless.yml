@@ -61,6 +61,8 @@ functions:
     deleteUser: ${file(src/user/adapters/deleteUser/deleteUser.yml)}
     getUser: ${file(src/user/adapters/getUser/getUser.yml)}
     updateUser: ${file(src/user/adapters/updateUser/updateUser.yml)}
+    register: ${file(src/auth/adapters/register/register.yml)}
+    login: ${file(src/auth/adapters/login/login.yml)}
 
 resources:
     Resources:

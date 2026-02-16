@@ -1,0 +1,6 @@
+handler: src/auth/adapters/login/index.handler
+
+events:
+    - httpApi:
+          path: /auth/login
+          method: post

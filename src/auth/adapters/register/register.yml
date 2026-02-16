@@ -1,0 +1,6 @@
+handler: src/auth/adapters/register/index.handler
+
+events:
+    - httpApi:
+          path: /auth/register
+          method: post
