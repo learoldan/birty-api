@@ -17,6 +17,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.490.0
         version: 3.990.0(@aws-sdk/client-dynamodb@3.990.0)
+      aws-jwt-verify:
+        specifier: ^5.1.1
+        version: 5.1.1
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
@@ -1071,6 +1074,10 @@ packages:
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
+
+  aws-jwt-verify@5.1.1:
+    resolution: {integrity: sha512-j6whGdGJmQ27agk4ijY8RPv6itb8JLb7SCJ86fEnneTcSBrpxuwL8kLq6y5WVH95aIknyAloEqAsaOLS1J8ITQ==}
+    engines: {node: '>=18.0.0'}
 
   aws-sdk@2.1693.0:
     resolution: {integrity: sha512-cJmb8xEnVLT+R6fBS5sn/EFJiX7tUnDaPtOPZ1vFbOJtd0fnZn/Ky2XGgsvvoeliWeH7mL3TWSX5zXXGSQV6gQ==}
@@ -4954,6 +4961,8 @@ snapshots:
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
+
+  aws-jwt-verify@5.1.1: {}
 
   aws-sdk@2.1693.0:
     dependencies:

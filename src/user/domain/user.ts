@@ -45,6 +45,7 @@ export class UserId {
 // User Entity
 export interface UserProps {
     id: UserId
+    cognitoSub: string
     firstNames: string
     lastNames: string
     email: Email
@@ -54,6 +55,7 @@ export interface UserProps {
 
 export class User {
     private readonly id: UserId
+    private readonly cognitoSub: string
     private firstNames: string
     private lastNames: string
     private email: Email
@@ -62,6 +64,7 @@ export class User {
 
     constructor(props: UserProps) {
         this.id = props.id
+        this.cognitoSub = props.cognitoSub
         this.firstNames = props.firstNames
         this.lastNames = props.lastNames
         this.email = props.email
@@ -72,6 +75,10 @@ export class User {
     // Getters
     getId(): UserId {
         return this.id
+    }
+
+    getCognitoSub(): string {
+        return this.cognitoSub
     }
 
     getFirstNames(): string {
@@ -110,6 +117,7 @@ export class User {
     toPlainObject(): any {
         return {
             id: this.id.getValue(),
+            cognitoSub: this.cognitoSub,
             firstNames: this.firstNames,
             lastNames: this.lastNames,
             email: this.email.getValue(),
@@ -122,6 +130,7 @@ export class User {
     static fromPlainObject(data: any): User {
         return new User({
             id: new UserId(data.id),
+            cognitoSub: data.cognitoSub,
             firstNames: data.firstNames,
             lastNames: data.lastNames,
             email: new Email(data.email),

@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { deleteUser } from '../../application/deleteUser'
 import { DynamoUserRepository } from '../../infrastructure/dynamoUserRepository'
+import { TokenService } from '../../../shared/services/tokenService'
 
 const repository = new DynamoUserRepository()
 
@@ -10,22 +11,26 @@ export const handler = async (
     console.log('Event:', JSON.stringify(event, null, 2))
 
     try {
-        const userId = event.pathParameters?.id
+        // Extract and verify token to get cognitoSub
+        const cognitoSub = await TokenService.getUserIdFromToken(event)
 
-        if (!userId) {
+        // Find user by cognitoSub
+        const user = await repository.findByCognitoSub(cognitoSub)
+
+        if (!user) {
             return {
-                statusCode: 400,
+                statusCode: 404,
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
                 },
                 body: JSON.stringify({
-                    message: 'User ID is required',
+                    message: 'User not found',
                 }),
             }
         }
 
-        await deleteUser(userId, repository)
+        await deleteUser(user.getId().getValue(), repository)
 
         return {
             statusCode: 200,
@@ -40,7 +45,12 @@ export const handler = async (
     } catch (error: any) {
         console.error('Error:', error)
 
-        const statusCode = error.message.includes('not found') ? 404 : 500
+        let statusCode = 500
+        if (error.message.includes('not found')) {
+            statusCode = 404
+        } else if (error.message.includes('token')) {
+            statusCode = 401
+        }
 
         return {
             statusCode,

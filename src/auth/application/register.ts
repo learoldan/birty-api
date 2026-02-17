@@ -43,6 +43,7 @@ export async function register(
 
     // Create user in database
     const createUserDTO: CreateUserDTO = {
+        cognitoSub: cognitoResult.userSub,
         email: dto.email,
         firstNames: dto.firstNames,
         lastNames: dto.lastNames,

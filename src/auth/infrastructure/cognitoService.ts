@@ -4,6 +4,7 @@ import {
     InitiateAuthCommand,
     AuthFlowType,
     AdminConfirmSignUpCommand,
+    ConfirmSignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider'
 
 export interface CognitoConfig {
@@ -123,6 +124,35 @@ export class CognitoService {
             await this.client.send(command)
         } catch (error: any) {
             throw new Error(error.message || 'Failed to confirm user')
+        }
+    }
+
+    async confirmSignUp(
+        email: string,
+        confirmationCode: string,
+    ): Promise<void> {
+        const command = new ConfirmSignUpCommand({
+            ClientId: this.clientId,
+            Username: email,
+            ConfirmationCode: confirmationCode,
+        })
+
+        try {
+            await this.client.send(command)
+        } catch (error: any) {
+            if (error.name === 'CodeMismatchException') {
+                throw new Error('Invalid verification code')
+            }
+            if (error.name === 'ExpiredCodeException') {
+                throw new Error('Verification code has expired')
+            }
+            if (error.name === 'UserNotFoundException') {
+                throw new Error('User not found')
+            }
+            if (error.name === 'NotAuthorizedException') {
+                throw new Error('User is already confirmed')
+            }
+            throw new Error(error.message || 'Confirmation failed')
         }
     }
 }

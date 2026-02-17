@@ -42,6 +42,39 @@ Registra un nuevo usuario en Cognito y crea el perfil en la base de datos.
 - `400 Bad Request` - Datos inválidos o falta algún campo requerido
 - `400 Bad Request` - La contraseña no cumple con los requisitos de Cognito
 
+### POST /auth/validate
+Valida/confirma el email del usuario con el código de verificación enviado por Cognito.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "confirmationCode": "123456"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "User confirmed successfully",
+  "data": {
+    "email": "user@example.com"
+  }
+}
+```
+
+**Flujo de Validación:**
+1. El usuario recibe un código de 6 dígitos en su email después del registro
+2. Envía el código junto con su email a este endpoint
+3. Cognito valida el código y confirma la cuenta
+4. El usuario ahora puede hacer login
+
+**Errores Comunes:**
+- `400 Bad Request` - Código de verificación inválido
+- `410 Gone` - El código de verificación ha expirado
+- `404 Not Found` - Usuario no encontrado
+- `409 Conflict` - El usuario ya está confirmado
+
 ### POST /auth/login
 Inicia sesión con credenciales de usuario.
 
@@ -108,11 +141,13 @@ auth/
 ├── domain/           # Entidades y lógica de negocio (legacy)
 ├── application/      # Casos de uso
 │   ├── register.ts   # Registro en Cognito + creación de usuario
+│   ├── validateUser.ts # Confirmación de email con código
 │   └── login.ts      # Autenticación con Cognito
 ├── infrastructure/   # Implementaciones externas
 │   └── cognitoService.ts
 └── adapters/         # Lambda handlers
     ├── register/
+    ├── validate/
     └── login/
 ```
 
@@ -124,12 +159,21 @@ auth/
 3. Se registra el usuario en Cognito (autenticación)
 4. Se crea el perfil del usuario en DynamoDB (tabla Users)
 5. Se retorna el userId y la información del usuario
+6. Cognito envía un código de verificación por email al usuario
+
+### Validación (Validate)
+1. Usuario recibe código de 6 dígitos en su email
+2. Cliente envía email y código de confirmación
+3. Lambda confirma el usuario en Cognito
+4. El usuario ahora puede hacer login
 
 ### Login
 1. Cliente envía email y password
 2. Lambda valida con Cognito
 3. Cognito retorna tokens JWT (accessToken, idToken, refreshToken)
 4. Cliente usa estos tokens para acceder a recursos protegidos
+
+**Nota:** El usuario debe estar confirmado para poder hacer login. Si intenta hacer login sin confirmar su email, recibirá el error "User email not confirmed".
 
 ## Notas
 

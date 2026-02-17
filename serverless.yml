@@ -19,6 +19,12 @@ provider:
         CLIENT_ID:
             Ref: CognitoUserPoolClient
 
+        COGNITO_USER_POOL_ID:
+            Ref: CognitoUserPool
+
+        COGNITO_CLIENT_ID:
+            Ref: CognitoUserPoolClient
+
         USERS_TABLE: ${self:service}-users-${self:provider.stage}
     iam:
         role:
@@ -29,10 +35,17 @@ provider:
                       - dynamodb:GetItem
                       - dynamodb:UpdateItem
                       - dynamodb:DeleteItem
+                      - dynamodb:Query
                   Resource:
-                      Fn::GetAtt:
-                          - UsersTable
-                          - Arn
+                      - Fn::GetAtt:
+                            - UsersTable
+                            - Arn
+                      - Fn::Join:
+                            - '/'
+                            - - Fn::GetAtt:
+                                    - UsersTable
+                                    - Arn
+                              - 'index/*'
     httpApi:
         authorizers:
             cognitoAuthorizer:
@@ -63,6 +76,7 @@ functions:
     updateUser: ${file(src/user/adapters/updateUser/updateUser.yml)}
     register: ${file(src/auth/adapters/register/register.yml)}
     login: ${file(src/auth/adapters/login/login.yml)}
+    validate: ${file(src/auth/adapters/validate/validate.yml)}
 
 resources:
     Resources:

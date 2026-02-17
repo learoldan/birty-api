@@ -1,0 +1,6 @@
+handler: src/auth/adapters/validate/index.handler
+
+events:
+    - httpApi:
+          path: /auth/validate
+          method: post

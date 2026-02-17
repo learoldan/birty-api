@@ -3,6 +3,7 @@ import { IUserRepository } from '../domain/user.repository'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface CreateUserDTO {
+    cognitoSub: string
     firstNames: string
     lastNames: string
     email: string
@@ -13,6 +14,9 @@ export async function createUser(
     repository: IUserRepository,
 ): Promise<User> {
     // Validate input
+    if (!dto.cognitoSub || dto.cognitoSub.trim().length === 0) {
+        throw new Error('Cognito Sub is required')
+    }
     if (!dto.firstNames || dto.firstNames.trim().length === 0) {
         throw new Error('First names are required')
     }
@@ -27,6 +31,7 @@ export async function createUser(
     // Create user entity
     const user = new User({
         id: userId,
+        cognitoSub: dto.cognitoSub,
         firstNames: dto.firstNames.trim(),
         lastNames: dto.lastNames.trim(),
         email,

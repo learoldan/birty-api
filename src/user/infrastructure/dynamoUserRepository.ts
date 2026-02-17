@@ -4,6 +4,7 @@ import {
     PutCommand,
     GetCommand,
     DeleteCommand,
+    QueryCommand,
 } from '@aws-sdk/lib-dynamodb'
 import { User, UserId } from '../domain/user'
 import { IUserRepository } from '../domain/user.repository'
@@ -61,6 +62,25 @@ export class DynamoUserRepository implements IUserRepository {
         }
 
         return User.fromPlainObject(response.Item)
+    }
+
+    async findByCognitoSub(cognitoSub: string): Promise<User | null> {
+        const command = new QueryCommand({
+            TableName: this.tableName,
+            IndexName: 'CognitoSubIndex',
+            KeyConditionExpression: 'cognitoSub = :cognitoSub',
+            ExpressionAttributeValues: {
+                ':cognitoSub': cognitoSub,
+            },
+        })
+
+        const response = await this.client.send(command)
+
+        if (!response.Items || response.Items.length === 0) {
+            return null
+        }
+
+        return User.fromPlainObject(response.Items[0])
     }
 
     async update(user: User): Promise<void> {

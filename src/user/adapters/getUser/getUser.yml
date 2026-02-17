@@ -2,6 +2,6 @@ handler: src/user/adapters/getUser/index.handler
 
 events:
     - httpApi:
-          path: /users/{id}
+          path: /users/me
           method: get
           authorizer: cognitoAuthorizer

@@ -1,9 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import { updateUser } from '../../application/updateUser'
-import { DynamoUserRepository } from '../../infrastructure/dynamoUserRepository'
-import { TokenService } from '../../../shared/services/tokenService'
+import { validateUser } from '../../application/validateUser'
+import { CognitoService } from '../../infrastructure/cognitoService'
 
-const repository = new DynamoUserRepository()
+const cognitoService = new CognitoService()
 
 export const handler = async (
     event: APIGatewayProxyEvent,
@@ -11,25 +10,6 @@ export const handler = async (
     console.log('Event:', JSON.stringify(event, null, 2))
 
     try {
-        // Extract and verify token to get cognitoSub
-        const cognitoSub = await TokenService.getUserIdFromToken(event)
-
-        // Find user by cognitoSub
-        const user = await repository.findByCognitoSub(cognitoSub)
-
-        if (!user) {
-            return {
-                statusCode: 404,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
-                body: JSON.stringify({
-                    message: 'User not found',
-                }),
-            }
-        }
-
         if (!event.body) {
             return {
                 statusCode: 400,
@@ -44,13 +24,7 @@ export const handler = async (
         }
 
         const body = JSON.parse(event.body)
-        const updatedUser = await updateUser(
-            {
-                id: user.getId().getValue(),
-                ...body,
-            },
-            repository,
-        )
+        const result = await validateUser(body, cognitoService)
 
         return {
             statusCode: 200,
@@ -59,18 +33,24 @@ export const handler = async (
                 'Access-Control-Allow-Origin': '*',
             },
             body: JSON.stringify({
-                message: 'User updated successfully',
-                data: updatedUser.toPlainObject(),
+                message: result.message,
+                data: {
+                    email: result.email,
+                },
             }),
         }
     } catch (error: any) {
         console.error('Error:', error)
 
         let statusCode = 400
-        if (error.message.includes('not found')) {
+        if (error.message.includes('Invalid verification code')) {
+            statusCode = 400
+        } else if (error.message.includes('expired')) {
+            statusCode = 410
+        } else if (error.message.includes('not found')) {
             statusCode = 404
-        } else if (error.message.includes('token')) {
-            statusCode = 401
+        } else if (error.message.includes('already confirmed')) {
+            statusCode = 409
         }
 
         return {

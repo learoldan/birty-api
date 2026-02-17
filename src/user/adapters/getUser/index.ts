@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import { getUser } from '../../application/getUser'
 import { DynamoUserRepository } from '../../infrastructure/dynamoUserRepository'
+import { TokenService } from '../../../shared/services/tokenService'
+
 const repository = new DynamoUserRepository()
 
 export const handler = async (
@@ -9,22 +10,11 @@ export const handler = async (
     console.log('Event:', JSON.stringify(event, null, 2))
 
     try {
-        const userId = event.pathParameters?.id
+        // Extract and verify token to get cognitoSub
+        const cognitoSub = await TokenService.getUserIdFromToken(event)
 
-        if (!userId) {
-            return {
-                statusCode: 400,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
-                body: JSON.stringify({
-                    message: 'User ID is required',
-                }),
-            }
-        }
-
-        const user = await getUser(userId, repository)
+        // Find user by cognitoSub
+        const user = await repository.findByCognitoSub(cognitoSub)
 
         if (!user) {
             return {
@@ -52,8 +42,13 @@ export const handler = async (
     } catch (error: any) {
         console.error('Error:', error)
 
+        let statusCode = 500
+        if (error.message.includes('token')) {
+            statusCode = 401
+        }
+
         return {
-            statusCode: 500,
+            statusCode,
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
