@@ -26,6 +26,7 @@ provider:
             Ref: CognitoUserPoolClient
 
         USERS_TABLE: ${self:service}-users-${self:provider.stage}
+        BIRTHDAYS_TABLE: ${self:service}-birthdays-${self:provider.stage}
     iam:
         role:
             statements:
@@ -44,6 +45,15 @@ provider:
                             - '/'
                             - - Fn::GetAtt:
                                     - UsersTable
+                                    - Arn
+                              - 'index/*'
+                      - Fn::GetAtt:
+                            - BirthdaysTable
+                            - Arn
+                      - Fn::Join:
+                            - '/'
+                            - - Fn::GetAtt:
+                                    - BirthdaysTable
                                     - Arn
                               - 'index/*'
     httpApi:
@@ -77,10 +87,15 @@ functions:
     register: ${file(src/auth/adapters/register/register.yml)}
     login: ${file(src/auth/adapters/login/login.yml)}
     validate: ${file(src/auth/adapters/validate/validate.yml)}
+    createBirthday: ${file(src/birthday/adapters/createBirthday/createBirthday.yml)}
+    listBirthdays: ${file(src/birthday/adapters/listBirthdays/listBirthdays.yml)}
+    getBirthday: ${file(src/birthday/adapters/getBirthday/getBirthday.yml)}
+    updateBirthday: ${file(src/birthday/adapters/updateBirthday/updateBirthday.yml)}
+    deleteBirthday: ${file(src/birthday/adapters/deleteBirthday/deleteBirthday.yml)}
 
 resources:
     Resources:
-        # DynamoDB Table
+        # DynamoDB Users Table
         UsersTable:
             Type: AWS::DynamoDB::Table
             Properties:
@@ -92,6 +107,32 @@ resources:
                 KeySchema:
                     - AttributeName: id
                       KeyType: HASH
+                StreamSpecification:
+                    StreamViewType: NEW_AND_OLD_IMAGES
+                Tags:
+                    - Key: Environment
+                      Value: ${self:provider.stage}
+            # DynamoDB Birthdays Table
+        BirthdaysTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:service}-birthdays-${self:provider.stage}
+                BillingMode: PAY_PER_REQUEST
+                AttributeDefinitions:
+                    - AttributeName: id
+                      AttributeType: S
+                    - AttributeName: userId
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: id
+                      KeyType: HASH
+                GlobalSecondaryIndexes:
+                    - IndexName: UserIdIndex
+                      KeySchema:
+                          - AttributeName: userId
+                            KeyType: HASH
+                      Projection:
+                          ProjectionType: ALL
                 StreamSpecification:
                     StreamViewType: NEW_AND_OLD_IMAGES
                 Tags:
@@ -162,6 +203,22 @@ resources:
                     - Arn
             Export:
                 Name: ${self:provider.stage}-UsersTableArn
+
+        BirthdaysTableName:
+            Description: DynamoDB Birthdays Table Name
+            Value:
+                Ref: BirthdaysTable
+            Export:
+                Name: ${self:provider.stage}-BirthdaysTableName
+
+        BirthdaysTableArn:
+            Description: DynamoDB Birthdays Table ARN
+            Value:
+                Fn::GetAtt:
+                    - BirthdaysTable
+                    - Arn
+            Export:
+                Name: ${self:provider.stage}-BirthdaysTableArn
 
         CognitoUserPoolId:
             Description: Cognito User Pool ID

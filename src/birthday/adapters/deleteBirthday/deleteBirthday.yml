@@ -1,0 +1,7 @@
+handler: src/birthday/adapters/deleteBirthday/index.handler
+events:
+    - httpApi:
+          method: DELETE
+          path: /birthdays/{id}
+          authorizer:
+              name: cognitoAuthorizer

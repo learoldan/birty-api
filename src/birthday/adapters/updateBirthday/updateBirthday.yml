@@ -1,0 +1,7 @@
+handler: src/birthday/adapters/updateBirthday/index.handler
+events:
+    - httpApi:
+          method: PUT
+          path: /birthdays/{id}
+          authorizer:
+              name: cognitoAuthorizer

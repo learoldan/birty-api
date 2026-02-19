@@ -1,0 +1,7 @@
+handler: src/birthday/adapters/createBirthday/index.handler
+events:
+    - httpApi:
+          method: POST
+          path: /birthdays
+          authorizer:
+              name: cognitoAuthorizer

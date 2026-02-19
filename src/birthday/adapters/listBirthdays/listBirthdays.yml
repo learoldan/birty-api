@@ -1,0 +1,7 @@
+handler: src/birthday/adapters/listBirthdays/index.handler
+events:
+    - httpApi:
+          method: GET
+          path: /birthdays
+          authorizer:
+              name: cognitoAuthorizer
