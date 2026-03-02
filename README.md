@@ -1,436 +1,546 @@
 # Birty API
 
-API Serverless construida con AWS Lambda, DynamoDB, API Gateway y Cognito, siguiendo los principios de Domain-Driven Design (DDD).
+Serverless API built with AWS Lambda, DynamoDB, API Gateway, and Cognito, following Hexagonal Architecture principles.
 
-## Arquitectura
+## Architecture
 
-El proyecto sigue una arquitectura modular con DDD:
+The project follows a modular hexagonal architecture with clear separation of concerns:
 
 ```
 src/
-└── user/                    # Módulo de usuario
-    ├── domain/              # Capa de dominio (lógica de negocio)
-    │   ├── user.ts                  # Entidad User + Value Objects
-    │   └── user.repository.ts       # Interface del repositorio
-    ├── application/         # Capa de aplicación (casos de uso)
-    │   ├── createUser.ts
-    │   ├── getUser.ts
-    │   ├── updateUser.ts
-    │   └── deleteUser.ts
-    ├── infrastructure/      # Capa de infraestructura
-    │   └── dynamoUserRepository.ts  # Implementación DynamoDB
-    ├── adapters/            # Capa de adaptadores (handlers)
-    │   ├── createUser.handler.ts
-    │   ├── getUser.handler.ts
-    │   ├── updateUser.handler.ts
-    │   └── deleteUser.handler.ts
-    └── serverless.yml       # Configuración de funciones del módulo
+├── auth/                           # Authentication module
+│   ├── domain/                     # Domain layer (business logic)
+│   │   └── auth.ts                 # Auth entity
+│   ├── application/                # Application layer (use cases)
+│   │   ├── register.ts             # User registration
+│   │   ├── login.ts                # User login
+│   │   └── validateUser.ts         # Email verification
+│   ├── infrastructure/             # Infrastructure layer
+│   │   └── cognitoService.ts       # Cognito integration
+│   └── adapters/                   # Adapters layer (Lambda handlers)
+│       ├── register/
+│       ├── login/
+│       └── validate/
+├── user/                           # User module
+│   ├── domain/                     # Domain layer
+│   │   ├── user.ts                 # User entity + Value Objects
+│   │   └── user.repository.ts      # Repository interface
+│   ├── application/                # Application layer
+│   │   ├── createUser.ts
+│   │   ├── getUser.ts
+│   │   ├── updateUser.ts
+│   │   └── deleteUser.ts
+│   ├── infrastructure/             # Infrastructure layer
+│   │   └── dynamoUserRepository.ts # DynamoDB implementation
+│   └── adapters/                   # Adapters layer
+│       ├── createUser/
+│       ├── getUser/
+│       ├── updateUser/
+│       └── deleteUser/
+├── birthday/                       # Birthday module
+│   ├── domain/                     # Domain layer
+│   │   ├── birthday.ts             # Birthday entity + Value Objects
+│   │   └── birthday.repository.ts  # Repository interface
+│   ├── application/                # Application layer
+│   │   ├── createBirthday.ts
+│   │   ├── getBirthday.ts
+│   │   ├── listBirthdays.ts
+│   │   ├── updateBirthday.ts
+│   │   └── deleteBirthday.ts
+│   ├── infrastructure/             # Infrastructure layer
+│   │   └── dynamoBirthdayRepository.ts # DynamoDB implementation
+│   └── adapters/                   # Adapters layer
+│       ├── createBirthday/
+│       ├── getBirthday/
+│       ├── listBirthdays/
+│       ├── updateBirthday/
+│       └── deleteBirthday/
+└── shared/                         # Shared utilities
+    └── services/
+        └── tokenService.ts         # JWT token verification
 
-serverless.yml               # Configuración central (importa módulos)
+serverless.yml                      # Central configuration
 ```
 
-## Características
+## Features
 
-- ✅ **Domain-Driven Design**: Separación clara de responsabilidades
-- ✅ **TypeScript**: Tipado estático para mayor seguridad
-- ✅ **AWS Lambda**: Funciones serverless escalables
-- ✅ **DynamoDB**: Base de datos NoSQL
-- ✅ **Cognito**: Autenticación y autorización
-- ✅ **API Gateway**: REST API con CORS
-- ✅ **Deploy Independiente**: Cada función puede desplegarse por separado
-- ✅ **pnpm**: Gestor de paquetes eficiente
+- ✅ **Hexagonal Architecture**: Clear separation of domain, application, infrastructure, and adapters
+- ✅ **TypeScript**: Static typing for enhanced safety
+- ✅ **AWS Lambda**: Scalable serverless functions
+- ✅ **DynamoDB**: NoSQL database with GSI support
+- ✅ **Cognito**: Authentication and authorization with JWT tokens
+- ✅ **API Gateway HTTP API**: REST API with JWT authorizer
+- ✅ **Token-Based Security**: All protected endpoints use access tokens
+- ✅ **pnpm**: Efficient package manager
 
-## Requisitos Previos
+## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20
 - pnpm
-- AWS CLI configurado
-- Serverless Framework
+- AWS CLI configured
+- Serverless Framework v3
 
-## Instalación
+## Installation
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 pnpm install
 
-# Compilar TypeScript
+# Build TypeScript
 pnpm run build
 ```
 
-## Despliegue
-
-### 1. Desplegar todo el proyecto (recursos + todos los módulos)
+## Deployment
 
 ```bash
+# Deploy complete project
 pnpm run deploy
+
+# Deploy to specific stage
+pnpm run deploy -- --stage dev
+pnpm run deploy -- --stage prod
 ```
 
-Esto desplegará:
-- Tabla DynamoDB: `{stage}-users`
-- User Pool de Cognito
-- Todas las funciones Lambda de todos los módulos
-- HTTP API Gateway configurado
-
-### 2. Desplegar solo un módulo específico
-
-Si solo has hecho cambios en el módulo `user` y no quieres redesplegar otros módulos:
-
-```bash
-# Usando npm scripts
-pnpm run deploy:user
-
-# O con el script de shell
-./deploy-module.sh user dev
-```
-
-Esto desplegará únicamente las funciones Lambda del módulo user, sin afectar otros módulos ni recursos compartidos.
-
-### 3. Desplegar en diferentes entornos
-
-```bash
-# Deploy completo
-pnpm run deploy:dev      # Entorno de desarrollo
-pnpm run deploy:prod     # Entorno de producción
-
-# Deploy de módulo específico
-pnpm run deploy:user:dev  # Módulo user en dev
-pnpm run deploy:user:prod # Módulo user en prod
-
-# O usando el script
-./deploy-module.sh user dev
-./deploy-module.sh user prod
-```
-
-## Arquitectura del Proyecto
-
-### Configuración Modular con Deploy Independiente
-
-El proyecto utiliza una **arquitectura dual** que permite tanto deploy completo como deploy por módulos:
-
-#### 1. Deploy Completo (serverless.yml raíz)
-```yaml
-# serverless.yml (raíz)
-service: birty-api
-provider:
-  # Configuración global
-functions:
-  ${file(src/user/serverless.functions.yml)}  # Solo definiciones de funciones
-resources:
-  # Recursos compartidos (DynamoDB, Cognito)
-```
-
-#### 2. Deploy por Módulo (serverless.standalone.yml)
-```yaml
-# src/user/serverless.standalone.yml
-service: birty-api-user
-provider:
-  # Configuración específica del módulo
-functions:
-  createUser:
-    handler: adapters/createUser.handler
-    events: [...]
-```
-
-Cada módulo tiene **dos archivos de configuración**:
-- `serverless.functions.yml`: Solo definiciones de funciones (para deploy completo)
-- `serverless.standalone.yml`: Configuración completa (para deploy independiente)
-
-Esta estructura permite:
-- ✅ **Deploy completo**: Un comando despliega todos los recursos y módulos
-- ✅ **Deploy por módulo**: Desplegar solo el módulo modificado sin afectar otros
-- ✅ **Aislamiento**: Cambios en un módulo no requieren redespliegue de otros
-- ✅ **Escalabilidad**: Fácil agregar nuevos módulos sin afectar los existentes
+This will deploy:
+- DynamoDB Tables: `birty-api-users-{stage}`, `birty-api-birthdays-{stage}`
+- Cognito User Pool with email verification
+- All Lambda functions for auth, user, and birthday modules
+- HTTP API Gateway with Cognito JWT authorizer
 
 ## API Endpoints
 
-Todos los endpoints requieren autenticación con Cognito (token JWT en el header `Authorization`).
+### Authentication Endpoints (Public)
 
-### Crear Usuario
+#### Register
 ```http
-POST /users
+POST /auth/register
 Content-Type: application/json
 
 {
-  "firstNames": "Juan Carlos",
-  "lastNames": "Pérez García",
-  "email": "juan.perez@example.com"
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "firstNames": "John",
+  "lastNames": "Doe"
+}
+
+Response:
+{
+  "message": "User registered successfully",
+  "userId": "uuid",
+  "userSub": "cognito-sub"
 }
 ```
 
-### Obtener Usuario
+#### Login
 ```http
-GET /users/{id}
-```
-
-### Actualizar Usuario
-```http
-PUT /users/{id}
+POST /auth/login
 Content-Type: application/json
 
 {
-  "firstNames": "Juan Carlos",
-  "lastNames": "Pérez García",
-  "email": "nuevo.email@example.com"
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+Response:
+{
+  "message": "Login successful",
+  "accessToken": "...",
+  "idToken": "...",
+  "refreshToken": "..."
 }
 ```
 
-### Eliminar Usuario
+#### Validate Email
 ```http
-DELETE /users/{id}
+POST /auth/validate
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "code": "123456"
+}
+
+Response:
+{
+  "message": "User validated successfully"
+}
 ```
 
-## Modelo de Usuario
+### User Endpoints (Protected)
 
+All user endpoints require `Authorization: Bearer {accessToken}` header.
+
+#### Get Current User
+```http
+GET /users/me
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "user": {
+    "id": "uuid",
+    "cognitoSub": "cognito-sub",
+    "firstNames": "John",
+    "lastNames": "Doe",
+    "email": "user@example.com",
+    "createdAt": "2026-03-02T00:00:00.000Z",
+    "updatedAt": "2026-03-02T00:00:00.000Z"
+  }
+}
+```
+
+#### Update Current User
+```http
+PUT /users/me
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "firstNames": "John Updated",
+  "lastNames": "Doe Updated",
+  "email": "newemail@example.com"
+}
+
+Response:
+{
+  "message": "User updated successfully",
+  "user": { ... }
+}
+```
+
+#### Delete Current User
+```http
+DELETE /users/me
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "message": "User deleted successfully"
+}
+```
+
+### Birthday Endpoints (Protected)
+
+All birthday endpoints require `Authorization: Bearer {accessToken}` header.
+
+#### Create Birthday
+```http
+POST /birthdays
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "name": "Mom's Birthday",
+  "birthDate": "1970-05-15",
+  "notes": "Remember to buy flowers",
+  "reminderDays": 7
+}
+
+Response:
+{
+  "message": "Birthday created successfully",
+  "birthday": {
+    "id": "uuid",
+    "userId": "user-uuid",
+    "name": "Mom's Birthday",
+    "birthDate": "1970-05-15",
+    "notes": "Remember to buy flowers",
+    "reminderDays": 7,
+    "createdAt": "2026-03-02T00:00:00.000Z",
+    "updatedAt": "2026-03-02T00:00:00.000Z"
+  }
+}
+```
+
+#### List All Birthdays
+```http
+GET /birthdays
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "birthdays": [
+    {
+      "id": "uuid",
+      "userId": "user-uuid",
+      "name": "Mom's Birthday",
+      "birthDate": "1970-05-15",
+      "notes": "Remember to buy flowers",
+      "reminderDays": 7,
+      "createdAt": "2026-03-02T00:00:00.000Z",
+      "updatedAt": "2026-03-02T00:00:00.000Z"
+    }
+  ]
+}
+```
+*Note: Birthdays are sorted by proximity to next birthday (closest first)*
+
+#### Get Specific Birthday
+```http
+GET /birthdays/{id}
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "birthday": { ... }
+}
+```
+
+#### Update Birthday
+```http
+PUT /birthdays/{id}
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "name": "Mom's Birthday Updated",
+  "birthDate": "1970-05-15",
+  "notes": "Updated notes",
+  "reminderDays": 14
+}
+
+Response:
+{
+  "message": "Birthday updated successfully",
+  "birthday": { ... }
+}
+```
+
+#### Delete Birthday
+```http
+DELETE /birthdays/{id}
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "message": "Birthday deleted successfully"
+}
+```
+
+## Data Models
+
+### User Model
 ```typescript
 {
-  id: string;           // UUID generado automáticamente
-  firstNames: string;   // Nombres
-  lastNames: string;    // Apellidos
-  email: string;        // Email (único y validado)
+  id: string;           // UUID
+  cognitoSub: string;   // Cognito user sub (for token auth)
+  firstNames: string;   // First names
+  lastNames: string;    // Last names
+  email: string;        // Email (unique, validated)
   createdAt: string;    // ISO 8601 timestamp
   updatedAt: string;    // ISO 8601 timestamp
 }
 ```
 
-## Autenticación con Cognito
-
-### Registrar un usuario en Cognito
-
-```bash
-aws cognito-idp sign-up \
-  --client-id YOUR_CLIENT_ID \
-  --username user@example.com \
-  --password YourPassword123! \
-  --user-attributes Name=email,Value=user@example.com
-```
-
-### Confirmar usuario
-
-```bash
-aws cognito-idp admin-confirm-sign-up \
-  --user-pool-id YOUR_USER_POOL_ID \
-  --username user@example.com
-```
-
-### Obtener token de autenticación
-
-```bash
-aws cognito-idp initiate-auth \
-  --client-id YOUR_CLIENT_ID \
-  --auth-flow USER_PASSWORD_AUTH \
-  --auth-parameters USERNAME=user@example.com,PASSWORD=YourPassword123!
-```
-
-## Desarrollo Local
-
-```bash
-# Instalar serverless-offline
-pnpm add -D serverless-offline
-
-# Ejecutar localmente (desde cada carpeta de función)
-cd functions/create-user
-serverless offline
-```
-
-## Variables de Entorno
-
-- `USERS_TABLE`: Nombre de la tabla DynamoDB
-- `AWS_REGION`: Región de AWS (default: us-east-1)
-
-## Estructura de Capas DDD
-
-### Domain (Dominio)
-- **Entities**: Lógica de negocio principal (`User`)
-- **Value Objects**: Objetos inmutables (`Email`, `UserId`)
-- **Repositories**: Interfaces de persistencia
-
-### Application (Aplicación)
-- **Use Cases**: Casos de uso del negocio
-  - `CreateUserUseCase`
-  - `GetUserUseCase`
-  - `UpdateUserUseCase`
-  - `DeleteUserUseCase`
-
-### Infrastructure (Infraestructura)
-- **Repositories**: Implementación con DynamoDB
-- **Persistence**: Cliente de DynamoDB
-
-### Presentation (Presentación)
-- **Handlers**: Lambda handlers para API Gateway
-
-## Scripts Disponibles
-
-```bash
-# Build
-pnpm run build                    # Compilar TypeScript
-
-# Deploy completo
-pnpm run deploy                   # Deploy todo (stage dev)
-pnpm run deploy:dev               # Deploy todo en desarrollo
-pnpm run deploy:prod              # Deploy todo en producción
-pnpm run deploy:resources         # Solo recursos compartidos
-
-# Deploy por módulo
-pnpm run deploy:user              # Deploy módulo user
-pnpm run deploy:user:dev          # Deploy módulo user en dev
-pnpm run deploy:user:prod         # Deploy módulo user en prod
-
-# Información
-pnpm run info                     # Info del proyecto completo
-pnpm run info:user                # Info del módulo user
-
-# Eliminar
-pnpm run remove                   # Eliminar stack completo
-pnpm run remove:user              # Eliminar módulo user
-
-# Local
-pnpm run offline                  # Ejecutar localmente
-```
-
-### ¿Cuándo usar cada tipo de deploy?
-
-#### Deploy Completo (`pnpm run deploy`)
-Usa cuando:
-- ✅ Es el primer deploy del proyecto
-- ✅ Has modificado recursos compartidos (DynamoDB, Cognito)
-- ✅ Has agregado un nuevo módulo
-- ✅ Has modificado la configuración global del provider
-- ✅ Quieres asegurar consistencia completa
-
-#### Deploy por Módulo (`pnpm run deploy:user`)
-Usa cuando:
-- ✅ Solo modificaste código de un módulo específico
-- ✅ Quieres deploys más rápidos (solo las funciones del módulo)
-- ✅ Trabajas en equipo y cada uno maneja módulos diferentes
-- ✅ No quieres arriesgar afectar otros módulos en producción
-- ✅ Necesitas hacer hotfix solo en un módulo
-
-## Ventajas de la Arquitectura Modular con Deploy Independiente
-
-### Flexibilidad de Deploy
-- ✅ **Deploy completo**: Para cambios globales o configuración inicial
-- ✅ **Deploy por módulo**: Para cambios aislados y deploys rápidos
-- ✅ **Sin dependencias cruzadas**: Módulos se despliegan independientemente
-
-### Desarrollo en Equipo
-- ✅ **Equipos separados**: Cada equipo puede trabajar y desplegar su módulo
-- ✅ **Sin conflictos**: Cambios en un módulo no afectan otros
-- ✅ **Testing independiente**: Probar módulos en aislamiento
-
-### Producción más Segura
-- ✅ **Hotfix localizado**: Reparar un módulo sin tocar los demás
-- ✅ **Rollback granular**: Revertir solo el módulo con problemas
-- ✅ **Menor riesgo**: Deploy de un módulo no afecta servicios de otros módulos
-
-### Performance
-- ✅ **Deploys más rápidos**: Solo desplegar lo que cambió
-- ✅ **Menos tiempo de inactividad**: Deploy parcial es más rápido
-
-### Organización
-- ✅ **Código cohesivo**: Todo relacionado con User está en `src/user/`
-- ✅ **Configuración dual**: Flexibilidad sin duplicación excesiva
-- ✅ **Escalabilidad horizontal**: Agregar módulos sin afectar existentes
-
-## Eliminar recursos
-
-```bash
-# Eliminar todo el stack
-pnpm run remove
-
-# O específicamente por stage
-serverless remove --stage dev
-serverless remove --stage prod
-```
-
-## Agregar un Nuevo Módulo
-
-Para agregar un nuevo módulo (ejemplo: `product`):
-
-1. **Crear la estructura del módulo**:
-```bash
-mkdir -p src/product/{domain,application,infrastructure,adapters}
-```
-
-2. **Crear serverless.functions.yml (para deploy completo)**:
-```yaml
-# src/product/serverless.functions.yml
-createProduct:
-  handler: src/product/adapters/createProduct.handler
-  events:
-    - httpApi:
-        path: /products
-        method: post
-
-getProduct:
-  handler: src/product/adapters/getProduct.handler
-  events:
-    - httpApi:
-        path: /products/{id}
-        method: get
-```
-
-3. **Crear serverless.standalone.yml (para deploy independiente)**:
-```yaml
-# src/product/serverless.standalone.yml
-service: birty-api-product
-
-frameworkVersion: '3'
-
-provider:
-    name: aws
-    runtime: nodejs20.x
-    region: 'eu-west-3'
-    stage: ${opt:stage, 'dev'}
-    environment:
-        PRODUCTS_TABLE: ${self:provider.stage}-products
-    iam:
-        role:
-            statements:
-                - Effect: Allow
-                  Action:
-                      - dynamodb:*
-                  Resource:
-                      - Fn::ImportValue: ${self:provider.stage}-ProductsTableArn
-
-plugins:
-    - serverless-plugin-typescript
-
-functions:
-    createProduct:
-        handler: adapters/createProduct.handler
-        events:
-            - httpApi:
-                  path: /products
-                  method: post
-```
-
-4. **Importar en el serverless.yml raíz**:
-```yaml
-functions:
-  ${file(src/user/serverless.functions.yml)}
-  ${file(src/product/serverless.functions.yml)}
-```
-
-5. **Agregar scripts en package.json**:
-```json
+### Birthday Model
+```typescript
 {
-  "scripts": {
-    "deploy:product": "cd src/product && serverless deploy -c serverless.standalone.yml",
-    "deploy:product:dev": "cd src/product && serverless deploy -c serverless.standalone.yml --stage dev",
-    "deploy:product:prod": "cd src/product && serverless deploy -c serverless.standalone.yml --stage prod"
-  }
+  id: string;           // UUID
+  userId: string;       // User ID (owner)
+  name: string;         // Birthday person's name
+  birthDate: string;    // Date in YYYY-MM-DD format
+  notes?: string;       // Optional notes
+  reminderDays?: number; // Days before to remind (optional)
+  createdAt: string;    // ISO 8601 timestamp
+  updatedAt: string;    // ISO 8601 timestamp
 }
 ```
 
-6. **Deploy**:
-```bash
-# Deploy completo (incluye product)
-pnpm run deploy
+## Environment Variables
 
-# O deploy solo del módulo product
-pnpm run deploy:product
+- `USERS_TABLE`: DynamoDB Users table name
+- `BIRTHDAYS_TABLE`: DynamoDB Birthdays table name
+- `COGNITO_USER_POOL_ID`: Cognito User Pool ID
+- `COGNITO_CLIENT_ID`: Cognito User Pool Client ID
+- `AWS_REGION`: AWS Region (default: eu-west-3)
+
+## DynamoDB Tables
+
+### Users Table
+- **Primary Key**: `id` (String)
+- **GSI**: `CognitoSubIndex` on `cognitoSub` (for token-based queries)
+- **Billing**: PAY_PER_REQUEST
+
+### Birthdays Table
+- **Primary Key**: `id` (String)
+- **GSI**: `UserIdIndex` on `userId` (for user's birthdays queries)
+- **Billing**: PAY_PER_REQUEST
+
+## Hexagonal Architecture Layers
+
+### Domain Layer
+- **Entities**: Core business logic (`User`, `Birthday`)
+- **Value Objects**: Immutable objects (`Email`, `UserId`, `BirthdayId`, `BirthDate`)
+- **Repository Interfaces**: Persistence contracts
+
+### Application Layer
+- **Use Cases**: Business use cases with validation
+- **DTOs**: Data transfer objects for each operation
+- **Business Rules**: Age calculation, days until birthday, etc.
+
+### Infrastructure Layer
+- **Repository Implementations**: DynamoDB persistence
+- **External Services**: Cognito integration
+- **AWS SDK Clients**: DynamoDB, Cognito clients
+
+### Adapters Layer
+- **Lambda Handlers**: API Gateway event handlers
+- **Request/Response Mapping**: HTTP to domain translation
+- **Error Handling**: User-friendly error responses
+
+## Authentication Flow
+
+1. **Registration**: User signs up → Cognito creates user → Email verification required → User profile created
+2. **Email Verification**: User receives code → Validates via `/auth/validate` → Account activated
+3. **Login**: User signs in → Cognito returns JWT tokens (access, id, refresh)
+4. **Protected Requests**: Client sends access token → API Gateway validates → Lambda extracts user from token
+
+## Security Features
+
+- ✅ **JWT Token Verification**: All protected endpoints validate Cognito tokens
+- ✅ **Ownership Validation**: Users can only access their own resources
+- ✅ **Cognito Integration**: Industry-standard authentication
+- ✅ **Password Policies**: Minimum 8 characters, uppercase, lowercase, numbers, symbols
+- ✅ **Email Verification**: Required before account activation
+
+## Available Scripts
+
+```bash
+# Build
+pnpm run build                    # Compile TypeScript
+
+# Deploy
+pnpm run deploy                   # Deploy complete project
+pnpm run deploy -- --stage dev    # Deploy to dev
+pnpm run deploy -- --stage prod   # Deploy to prod
+
+# Remove
+pnpm run remove                   # Remove complete stack
+pnpm run remove -- --stage dev    # Remove dev stack
+
+# Info
+serverless info                   # Get deployment information
 ```
 
-## Licencia
+## Testing the API
+
+### 1. Register a new user
+```bash
+curl -X POST https://your-api-url/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPass123!",
+    "firstNames": "Test",
+    "lastNames": "User"
+  }'
+```
+
+### 2. Verify email (check your email for code)
+```bash
+curl -X POST https://your-api-url/auth/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "code": "123456"
+  }'
+```
+
+### 3. Login
+```bash
+curl -X POST https://your-api-url/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPass123!"
+  }'
+```
+
+### 4. Use the access token for protected endpoints
+```bash
+# Get current user
+curl -X GET https://your-api-url/users/me \
+  -H "Authorization: Bearer {accessToken}"
+
+# Create a birthday
+curl -X POST https://your-api-url/birthdays \
+  -H "Authorization: Bearer {accessToken}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Birthday Person",
+    "birthDate": "1990-12-25",
+    "reminderDays": 7
+  }'
+
+# List birthdays
+curl -X GET https://your-api-url/birthdays \
+  -H "Authorization: Bearer {accessToken}"
+```
+
+## Adding a New Module
+
+To add a new module (e.g., `reminder`):
+
+1. **Create module structure**:
+```bash
+mkdir -p src/reminder/{domain,application,infrastructure,adapters}
+```
+
+2. **Implement layers**:
+- Domain: Entity, value objects, repository interface
+- Application: Use cases with DTOs
+- Infrastructure: Repository implementation
+- Adapters: Lambda handlers with `.yml` configs
+
+3. **Add functions to serverless.yml**:
+```yaml
+functions:
+  createReminder: ${file(src/reminder/adapters/createReminder/createReminder.yml)}
+  # ... other functions
+```
+
+4. **Add table to resources** (if needed):
+```yaml
+resources:
+  Resources:
+    RemindersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-reminders-${self:provider.stage}
+        # ... configuration
+```
+
+5. **Deploy**:
+```bash
+pnpm run deploy
+```
+
+## Best Practices
+
+- ✅ Keep domain logic pure and framework-agnostic
+- ✅ Use value objects for complex validations
+- ✅ Validate input at application layer before reaching domain
+- ✅ Repository interfaces in domain, implementations in infrastructure
+- ✅ Lambda handlers only map requests/responses, delegate to use cases
+- ✅ Use DTOs for clear contract between layers
+- ✅ Always verify resource ownership in protected endpoints
+
+## Troubleshooting
+
+### Token Verification Issues
+- Ensure `COGNITO_USER_POOL_ID` and `COGNITO_CLIENT_ID` are set correctly
+- Access tokens require `clientId: null` in verifier configuration
+- Use access tokens for API calls, not ID tokens
+
+### DynamoDB Permission Errors
+- Ensure IAM role has Query permission for GSI operations
+- Resource ARN must include `index/*` for GSI queries
+
+### CORS Issues
+- API Gateway HTTP API with JWT authorizer configured
+- Ensure client sends Authorization header properly
+
+## License
 
 ISC
+

@@ -28,8 +28,8 @@ importers:
         specifier: ^8.10.131
         version: 8.10.160
       '@types/node':
-        specifier: ^20.11.5
-        version: 20.19.33
+        specifier: ^22.0.0
+        version: 22.19.13
       '@types/uuid':
         specifier: ^9.0.7
         version: 9.0.8
@@ -38,13 +38,13 @@ importers:
         version: 0.27.3
       serverless:
         specifier: ^3.38.0
-        version: 3.40.0(@types/node@20.19.33)
+        version: 3.40.0(@types/node@22.19.13)
       serverless-esbuild:
         specifier: ^1.57.0
         version: 1.57.0(esbuild@0.27.3)
       serverless-offline:
         specifier: ^13.3.3
-        version: 13.9.0(serverless@3.40.0(@types/node@20.19.33))
+        version: 13.9.0(serverless@3.40.0(@types/node@22.19.13))
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
@@ -940,8 +940,8 @@ packages:
   '@types/lodash@4.17.23':
     resolution: {integrity: sha512-RDvF6wTulMPjrNdCoYRC8gNR880JNGT8uB+REUpC2Ns4pRqQJhGz90wh7rgdXDPpCczF3VGktDuFGVnz8zP7HA==}
 
-  '@types/node@20.19.33':
-    resolution: {integrity: sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw==}
+  '@types/node@22.19.13':
+    resolution: {integrity: sha512-akNQMv0wW5uyRpD2v2IEyRSZiR+BeGuoB6L310EgGObO44HSMNT8z1xzio28V8qOrgYaopIDNA18YgdXd+qTiw==}
 
   '@types/responselike@1.0.3':
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
@@ -4245,12 +4245,12 @@ snapshots:
       '@hapi/bourne': 3.0.0
       '@hapi/hoek': 11.0.7
 
-  '@inquirer/external-editor@1.0.3(@types/node@20.19.33)':
+  '@inquirer/external-editor@1.0.3(@types/node@22.19.13)':
     dependencies:
       chardet: 2.1.1
       iconv-lite: 0.7.2
     optionalDependencies:
-      '@types/node': 20.19.33
+      '@types/node': 22.19.13
 
   '@jsep-plugin/assignment@1.3.0(jsep@1.4.0)':
     dependencies:
@@ -4346,13 +4346,13 @@ snapshots:
       '@parcel/watcher-win32-ia32': 2.5.6
       '@parcel/watcher-win32-x64': 2.5.6
 
-  '@serverless/dashboard-plugin@7.2.3(@types/node@20.19.33)(supports-color@8.1.1)':
+  '@serverless/dashboard-plugin@7.2.3(@types/node@22.19.13)(supports-color@8.1.1)':
     dependencies:
       '@aws-sdk/client-cloudformation': 3.990.0
       '@aws-sdk/client-sts': 3.990.0
       '@serverless/event-mocks': 1.1.1
       '@serverless/platform-client': 4.5.1(supports-color@8.1.1)
-      '@serverless/utils': 6.15.0(@types/node@20.19.33)
+      '@serverless/utils': 6.15.0(@types/node@22.19.13)
       child-process-ext: 3.0.2
       chokidar: 3.6.0
       flat: 5.0.2
@@ -4408,7 +4408,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@serverless/utils@6.15.0(@types/node@20.19.33)':
+  '@serverless/utils@6.15.0(@types/node@22.19.13)':
     dependencies:
       archive-type: 4.0.0
       chalk: 4.1.2
@@ -4424,7 +4424,7 @@ snapshots:
       filenamify: 4.3.0
       get-stream: 6.0.1
       got: 11.8.6
-      inquirer: 8.2.7(@types/node@20.19.33)
+      inquirer: 8.2.7(@types/node@22.19.13)
       js-yaml: 4.1.1
       jwt-decode: 3.1.2
       lodash: 4.17.23
@@ -4801,24 +4801,24 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.2.0
       '@types/keyv': 3.1.4
-      '@types/node': 20.19.33
+      '@types/node': 22.19.13
       '@types/responselike': 1.0.3
 
   '@types/http-cache-semantics@4.2.0': {}
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 20.19.33
+      '@types/node': 22.19.13
 
   '@types/lodash@4.17.23': {}
 
-  '@types/node@20.19.33':
+  '@types/node@22.19.13':
     dependencies:
       undici-types: 6.21.0
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 20.19.33
+      '@types/node': 22.19.13
 
   '@types/uuid@9.0.8': {}
 
@@ -5924,9 +5924,9 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  inquirer@8.2.7(@types/node@20.19.33):
+  inquirer@8.2.7(@types/node@22.19.13):
     dependencies:
-      '@inquirer/external-editor': 1.0.3(@types/node@20.19.33)
+      '@inquirer/external-editor': 1.0.3(@types/node@22.19.13)
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       cli-cursor: 3.1.0
@@ -6685,7 +6685,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  serverless-offline@13.9.0(serverless@3.40.0(@types/node@20.19.33)):
+  serverless-offline@13.9.0(serverless@3.40.0(@types/node@22.19.13)):
     dependencies:
       '@aws-sdk/client-lambda': 3.990.0
       '@hapi/boom': 10.0.1
@@ -6707,7 +6707,7 @@ snapshots:
       luxon: 3.7.2
       node-schedule: 2.1.1
       p-memoize: 7.1.1
-      serverless: 3.40.0(@types/node@20.19.33)
+      serverless: 3.40.0(@types/node@22.19.13)
       velocityjs: 2.1.5
       ws: 8.19.0
     transitivePeerDependencies:
@@ -6716,7 +6716,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  serverless@3.40.0(@types/node@20.19.33):
+  serverless@3.40.0(@types/node@22.19.13):
     dependencies:
       '@aws-sdk/client-api-gateway': 3.990.0
       '@aws-sdk/client-cognito-identity-provider': 3.990.0
@@ -6724,9 +6724,9 @@ snapshots:
       '@aws-sdk/client-iam': 3.990.0
       '@aws-sdk/client-lambda': 3.990.0
       '@aws-sdk/client-s3': 3.990.0
-      '@serverless/dashboard-plugin': 7.2.3(@types/node@20.19.33)(supports-color@8.1.1)
+      '@serverless/dashboard-plugin': 7.2.3(@types/node@22.19.13)(supports-color@8.1.1)
       '@serverless/platform-client': 4.5.1(supports-color@8.1.1)
-      '@serverless/utils': 6.15.0(@types/node@20.19.33)
+      '@serverless/utils': 6.15.0(@types/node@22.19.13)
       abort-controller: 3.0.0
       ajv: 8.18.0
       ajv-formats: 2.1.1(ajv@8.18.0)
