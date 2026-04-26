@@ -44,6 +44,21 @@ export const handler = async (
         }
 
         const body = JSON.parse(event.body)
+
+        if (body.email !== undefined) {
+            return {
+                statusCode: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                },
+                body: JSON.stringify({
+                    message:
+                        'Email cannot be modified. To change your email, please create a new user.',
+                }),
+            }
+        }
+
         const updatedUser = await updateUser(
             {
                 id: user.getId().getValue(),

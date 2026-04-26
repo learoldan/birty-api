@@ -1,11 +1,10 @@
-import { User, UserId, Email } from '../domain/user'
+import { User, UserId } from '../domain/user'
 import { IUserRepository } from '../domain/user.repository'
 
 export interface UpdateUserDTO {
     id: string
     firstNames?: string
     lastNames?: string
-    email?: string
 }
 
 export async function updateUser(
@@ -28,12 +27,6 @@ export async function updateUser(
         const firstNames = dto.firstNames?.trim() || user.getFirstNames()
         const lastNames = dto.lastNames?.trim() || user.getLastNames()
         user.updatePersonalInfo(firstNames, lastNames)
-    }
-
-    // Update email if provided
-    if (dto.email) {
-        const newEmail = new Email(dto.email)
-        user.updateEmail(newEmail)
     }
 
     // Persist changes
