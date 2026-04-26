@@ -87,6 +87,7 @@ functions:
     register: ${file(src/auth/adapters/register/register.yml)}
     login: ${file(src/auth/adapters/login/login.yml)}
     validate: ${file(src/auth/adapters/validate/validate.yml)}
+    changePassword: ${file(src/auth/adapters/changePassword/changePassword.yml)}
     createBirthday: ${file(src/birthday/adapters/createBirthday/createBirthday.yml)}
     listBirthdays: ${file(src/birthday/adapters/listBirthdays/listBirthdays.yml)}
     getBirthday: ${file(src/birthday/adapters/getBirthday/getBirthday.yml)}

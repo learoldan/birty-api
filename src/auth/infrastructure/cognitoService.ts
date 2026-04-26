@@ -5,6 +5,7 @@ import {
     AuthFlowType,
     AdminConfirmSignUpCommand,
     ConfirmSignUpCommand,
+    ChangePasswordCommand,
 } from '@aws-sdk/client-cognito-identity-provider'
 
 export interface CognitoConfig {
@@ -153,6 +154,35 @@ export class CognitoService {
                 throw new Error('User is already confirmed')
             }
             throw new Error(error.message || 'Confirmation failed')
+        }
+    }
+
+    async changePassword(
+        accessToken: string,
+        currentPassword: string,
+        newPassword: string,
+    ): Promise<void> {
+        const command = new ChangePasswordCommand({
+            AccessToken: accessToken,
+            PreviousPassword: currentPassword,
+            ProposedPassword: newPassword,
+        })
+
+        try {
+            await this.client.send(command)
+        } catch (error: any) {
+            if (error.name === 'NotAuthorizedException') {
+                throw new Error('Current password is incorrect')
+            }
+            if (error.name === 'InvalidPasswordException') {
+                throw new Error('New password does not meet requirements')
+            }
+            if (error.name === 'LimitExceededException') {
+                throw new Error(
+                    'Attempt limit exceeded, please try again later',
+                )
+            }
+            throw new Error(error.message || 'Failed to change password')
         }
     }
 }
