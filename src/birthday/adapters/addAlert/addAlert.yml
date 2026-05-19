@@ -1,0 +1,7 @@
+handler: src/birthday/adapters/addAlert/index.handler
+events:
+    - httpApi:
+          method: POST
+          path: /birthdays/{id}/alerts
+          authorizer:
+              name: cognitoAuthorizer

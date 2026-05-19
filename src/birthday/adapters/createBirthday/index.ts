@@ -15,7 +15,7 @@ export const handler = async (
         // Parse request body
         const body = JSON.parse(event.body || '{}')
 
-        const { name, birthDate, notes, reminderDays } = body
+        const { name, birthDate, notes, alerts } = body
 
         // Create birthday
         const birthday = await createBirthday(
@@ -24,7 +24,7 @@ export const handler = async (
                 name,
                 birthDate,
                 notes,
-                reminderDays,
+                alerts,
             },
             repository,
         )

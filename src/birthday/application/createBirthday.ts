@@ -1,4 +1,4 @@
-import { Birthday, BirthdayId, BirthDate } from '../domain/birthday'
+import { Birthday, BirthdayId, BirthDate, MonthDay } from '../domain/birthday'
 import { IBirthdayRepository } from '../domain/birthday.repository'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -7,7 +7,7 @@ export interface CreateBirthdayDTO {
     name: string
     birthDate: string | Date
     notes?: string
-    reminderDays?: number
+    alerts?: string[]
 }
 
 export async function createBirthday(
@@ -29,11 +29,6 @@ export async function createBirthday(
     const birthdayId = new BirthdayId(uuidv4())
     const birthDate = new BirthDate(dto.birthDate)
 
-    // Validate reminderDays if provided
-    if (dto.reminderDays !== undefined && dto.reminderDays < 0) {
-        throw new Error('Reminder days must be positive')
-    }
-
     // Create birthday entity
     const birthday = new Birthday({
         id: birthdayId,
@@ -41,7 +36,7 @@ export async function createBirthday(
         name: dto.name.trim(),
         birthDate,
         notes: dto.notes?.trim(),
-        reminderDays: dto.reminderDays,
+        alerts: dto.alerts?.map((a) => MonthDay.fromString(a)),
     })
 
     // Persist birthday

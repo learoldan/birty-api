@@ -5,9 +5,8 @@ export interface UpdateBirthdayDTO {
     id: string
     userId: string
     name?: string
-    birthDate?: string | Date
+    birthDate?: string
     notes?: string
-    reminderDays?: number
 }
 
 export async function updateBirthday(
@@ -43,11 +42,6 @@ export async function updateBirthday(
             dto.notes !== undefined ? dto.notes?.trim() : birthday.getNotes()
 
         birthday.updateInfo(name, birthDate, notes)
-    }
-
-    // Update reminder if provided
-    if (dto.reminderDays !== undefined) {
-        birthday.updateReminder(dto.reminderDays)
     }
 
     // Persist changes

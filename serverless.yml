@@ -93,6 +93,8 @@ functions:
     getBirthday: ${file(src/birthday/adapters/getBirthday/getBirthday.yml)}
     updateBirthday: ${file(src/birthday/adapters/updateBirthday/updateBirthday.yml)}
     deleteBirthday: ${file(src/birthday/adapters/deleteBirthday/deleteBirthday.yml)}
+    addAlert: ${file(src/birthday/adapters/addAlert/addAlert.yml)}
+    removeAlert: ${file(src/birthday/adapters/removeAlert/removeAlert.yml)}
 
 resources:
     Resources:

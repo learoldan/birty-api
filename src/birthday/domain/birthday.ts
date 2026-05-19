@@ -18,65 +18,97 @@ export class BirthdayId {
     }
 }
 
-export class BirthDate {
-    private readonly value: Date
+export class MonthDay {
+    private readonly month: number
+    private readonly day: number
 
-    constructor(date: Date | string) {
-        const parsedDate = typeof date === 'string' ? new Date(date) : date
+    private static readonly DAYS_IN_MONTH = [
+        0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+    ]
 
-        if (isNaN(parsedDate.getTime())) {
-            throw new Error('Invalid birth date')
+    constructor(month: number, day: number) {
+        if (!Number.isInteger(month) || month < 1 || month > 12) {
+            throw new Error('Month must be between 1 and 12')
         }
-
-        this.value = parsedDate
+        const maxDay = MonthDay.DAYS_IN_MONTH[month]
+        if (!Number.isInteger(day) || day < 1 || day > maxDay) {
+            throw new Error(
+                `Day must be between 1 and ${maxDay} for month ${month}`,
+            )
+        }
+        this.month = month
+        this.day = day
     }
 
-    getValue(): Date {
-        return this.value
+    getMonth(): number {
+        return this.month
     }
 
-    getAge(): number {
+    getDay(): number {
+        return this.day
+    }
+
+    toString(): string {
+        return `${String(this.month).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`
+    }
+
+    static fromString(value: string): MonthDay {
+        const match = /^(\d{1,2})-(\d{1,2})$/.exec(value)
+        if (!match) {
+            throw new Error('Invalid MonthDay format, expected MM-DD')
+        }
+        return new MonthDay(parseInt(match[1], 10), parseInt(match[2], 10))
+    }
+
+    equals(other: MonthDay): boolean {
+        return this.month === other.month && this.day === other.day
+    }
+
+    getDaysUntil(): number {
         const today = new Date()
-        const birthDate = this.value
-        let age = today.getFullYear() - birthDate.getFullYear()
-        const monthDiff = today.getMonth() - birthDate.getMonth()
-
-        if (
-            monthDiff < 0 ||
-            (monthDiff === 0 && today.getDate() < birthDate.getDate())
-        ) {
-            age--
+        today.setHours(0, 0, 0, 0)
+        const next = new Date(today.getFullYear(), this.month - 1, this.day)
+        next.setHours(0, 0, 0, 0)
+        if (next < today) {
+            next.setFullYear(today.getFullYear() + 1)
         }
+        return Math.ceil(
+            (next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        )
+    }
+}
 
-        return age
+export class BirthDate {
+    private readonly value: MonthDay
+
+    constructor(date: MonthDay | string) {
+        if (typeof date === 'string') {
+            this.value = MonthDay.fromString(date)
+        } else {
+            this.value = date
+        }
+    }
+
+    getValue(): MonthDay {
+        return this.value
     }
 
     getNextBirthday(): Date {
         const today = new Date()
+        today.setHours(0, 0, 0, 0)
         const nextBirthday = new Date(
             today.getFullYear(),
-            this.value.getMonth(),
-            this.value.getDate(),
+            this.value.getMonth() - 1,
+            this.value.getDay(),
         )
-
         if (nextBirthday < today) {
             nextBirthday.setFullYear(today.getFullYear() + 1)
         }
-
         return nextBirthday
     }
 
     getDaysUntilBirthday(): number {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-
-        const nextBirthday = this.getNextBirthday()
-        nextBirthday.setHours(0, 0, 0, 0)
-
-        const diffTime = nextBirthday.getTime() - today.getTime()
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-        return diffDays
+        return this.value.getDaysUntil()
     }
 }
 
@@ -87,7 +119,7 @@ export interface BirthdayProps {
     name: string
     birthDate: BirthDate
     notes?: string
-    reminderDays?: number
+    alerts?: MonthDay[]
     createdAt?: Date
     updatedAt?: Date
 }
@@ -98,7 +130,7 @@ export class Birthday {
     private name: string
     private birthDate: BirthDate
     private notes?: string
-    private reminderDays?: number
+    private alerts: MonthDay[]
     private readonly createdAt: Date
     private updatedAt: Date
 
@@ -108,7 +140,7 @@ export class Birthday {
         this.name = props.name
         this.birthDate = props.birthDate
         this.notes = props.notes
-        this.reminderDays = props.reminderDays
+        this.alerts = props.alerts || []
         this.createdAt = props.createdAt || new Date()
         this.updatedAt = props.updatedAt || new Date()
     }
@@ -134,8 +166,8 @@ export class Birthday {
         return this.notes
     }
 
-    getReminderDays(): number | undefined {
-        return this.reminderDays
+    getAlerts(): MonthDay[] {
+        return this.alerts
     }
 
     getCreatedAt(): Date {
@@ -154,11 +186,16 @@ export class Birthday {
         this.updatedAt = new Date()
     }
 
-    updateReminder(days: number): void {
-        if (days < 0) {
-            throw new Error('Reminder days must be positive')
+    addAlert(monthDay: MonthDay): void {
+        if (this.alerts.length >= 2) {
+            throw new Error('Cannot add more than 2 alerts')
         }
-        this.reminderDays = days
+        this.alerts.push(monthDay)
+        this.updatedAt = new Date()
+    }
+
+    removeAlert(monthDay: MonthDay): void {
+        this.alerts = this.alerts.filter((a) => !a.equals(monthDay))
         this.updatedAt = new Date()
     }
 
@@ -168,9 +205,9 @@ export class Birthday {
             id: this.id.getValue(),
             userId: this.userId,
             name: this.name,
-            birthDate: this.birthDate.getValue().toISOString(),
+            birthDate: this.birthDate.getValue().toString(),
             notes: this.notes,
-            reminderDays: this.reminderDays,
+            alerts: this.alerts.map((d) => d.toString()),
             createdAt: this.createdAt.toISOString(),
             updatedAt: this.updatedAt.toISOString(),
         }
@@ -184,7 +221,9 @@ export class Birthday {
             name: data.name,
             birthDate: new BirthDate(data.birthDate),
             notes: data.notes,
-            reminderDays: data.reminderDays,
+            alerts: (data.alerts || []).map((d: string) =>
+                MonthDay.fromString(d),
+            ),
             createdAt: new Date(data.createdAt),
             updatedAt: new Date(data.updatedAt),
         })
