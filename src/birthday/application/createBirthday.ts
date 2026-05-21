@@ -1,13 +1,14 @@
-import { Birthday, BirthdayId, BirthDate, MonthDay } from '../domain/birthday'
+import { Birthday, BirthdayId, BirthDate } from '../domain/birthday'
 import { IBirthdayRepository } from '../domain/birthday.repository'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface CreateBirthdayDTO {
     userId: string
+    userEmail: string
+    userName: string
     name: string
-    birthDate: string | Date
+    birthDate: string
     notes?: string
-    alerts?: string[]
 }
 
 export async function createBirthday(
@@ -17,6 +18,12 @@ export async function createBirthday(
     // Validate input
     if (!dto.userId || dto.userId.trim().length === 0) {
         throw new Error('User ID is required')
+    }
+    if (!dto.userEmail || dto.userEmail.trim().length === 0) {
+        throw new Error('User email is required')
+    }
+    if (!dto.userName || dto.userName.trim().length === 0) {
+        throw new Error('User name is required')
     }
     if (!dto.name || dto.name.trim().length === 0) {
         throw new Error('Name is required')
@@ -33,10 +40,11 @@ export async function createBirthday(
     const birthday = new Birthday({
         id: birthdayId,
         userId: dto.userId,
+        userEmail: dto.userEmail,
+        userName: dto.userName,
         name: dto.name.trim(),
         birthDate,
         notes: dto.notes?.trim(),
-        alerts: dto.alerts?.map((a) => MonthDay.fromString(a)),
     })
 
     // Persist birthday

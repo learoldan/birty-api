@@ -1,5 +1,6 @@
 import { BirthdayId, MonthDay } from '../domain/birthday'
 import { IBirthdayRepository } from '../domain/birthday.repository'
+import { IReminderRepository } from '../domain/reminder.repository'
 
 export interface RemoveAlertDTO {
     id: string
@@ -9,7 +10,8 @@ export interface RemoveAlertDTO {
 
 export async function removeAlert(
     dto: RemoveAlertDTO,
-    repository: IBirthdayRepository,
+    birthdayRepository: IBirthdayRepository,
+    reminderRepository: IReminderRepository,
 ): Promise<void> {
     if (!dto.id || dto.id.trim().length === 0) {
         throw new Error('Birthday ID is required')
@@ -22,7 +24,7 @@ export async function removeAlert(
     }
 
     const birthdayId = new BirthdayId(dto.id)
-    const birthday = await repository.findById(birthdayId)
+    const birthday = await birthdayRepository.findById(birthdayId)
 
     if (!birthday) {
         throw new Error('Birthday not found')
@@ -33,7 +35,5 @@ export async function removeAlert(
     }
 
     const monthDay = MonthDay.fromString(dto.date)
-    birthday.removeAlert(monthDay)
-
-    await repository.update(birthday)
+    await reminderRepository.delete(monthDay, dto.id)
 }

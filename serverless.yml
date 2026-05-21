@@ -27,6 +27,7 @@ provider:
 
         USERS_TABLE: ${self:service}-users-${self:provider.stage}
         BIRTHDAYS_TABLE: ${self:service}-birthdays-${self:provider.stage}
+        REMINDERS_TABLE: ${self:service}-reminders-${self:provider.stage}
     iam:
         role:
             statements:
@@ -54,6 +55,15 @@ provider:
                             - '/'
                             - - Fn::GetAtt:
                                     - BirthdaysTable
+                                    - Arn
+                              - 'index/*'
+                      - Fn::GetAtt:
+                            - RemindersTable
+                            - Arn
+                      - Fn::Join:
+                            - '/'
+                            - - Fn::GetAtt:
+                                    - RemindersTable
                                     - Arn
                               - 'index/*'
     httpApi:
@@ -95,6 +105,7 @@ functions:
     deleteBirthday: ${file(src/birthday/adapters/deleteBirthday/deleteBirthday.yml)}
     addAlert: ${file(src/birthday/adapters/addAlert/addAlert.yml)}
     removeAlert: ${file(src/birthday/adapters/removeAlert/removeAlert.yml)}
+    getAlerts: ${file(src/birthday/adapters/getAlerts/getAlerts.yml)}
 
 resources:
     Resources:
@@ -126,6 +137,8 @@ resources:
                       AttributeType: S
                     - AttributeName: userId
                       AttributeType: S
+                    - AttributeName: birthDate
+                      AttributeType: S
                 KeySchema:
                     - AttributeName: id
                       KeyType: HASH
@@ -136,8 +149,41 @@ resources:
                             KeyType: HASH
                       Projection:
                           ProjectionType: ALL
+                    - IndexName: BirthDateIndex
+                      KeySchema:
+                          - AttributeName: birthDate
+                            KeyType: HASH
+                      Projection:
+                          ProjectionType: ALL
                 StreamSpecification:
                     StreamViewType: NEW_AND_OLD_IMAGES
+                Tags:
+                    - Key: Environment
+                      Value: ${self:provider.stage}
+
+        # DynamoDB Reminders Table
+        RemindersTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:service}-reminders-${self:provider.stage}
+                BillingMode: PAY_PER_REQUEST
+                AttributeDefinitions:
+                    - AttributeName: alertDate
+                      AttributeType: S
+                    - AttributeName: birthdayId
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: alertDate
+                      KeyType: HASH
+                    - AttributeName: birthdayId
+                      KeyType: RANGE
+                GlobalSecondaryIndexes:
+                    - IndexName: BirthdayIdIndex
+                      KeySchema:
+                          - AttributeName: birthdayId
+                            KeyType: HASH
+                      Projection:
+                          ProjectionType: ALL
                 Tags:
                     - Key: Environment
                       Value: ${self:provider.stage}

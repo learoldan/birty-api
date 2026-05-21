@@ -6,7 +6,7 @@ import {
     DeleteCommand,
     QueryCommand,
 } from '@aws-sdk/lib-dynamodb'
-import { Birthday, BirthdayId } from '../domain/birthday'
+import { Birthday, BirthdayId, MonthDay } from '../domain/birthday'
 import { IBirthdayRepository } from '../domain/birthday.repository'
 
 export class DynamoBirthdayRepository implements IBirthdayRepository {
@@ -100,6 +100,23 @@ export class DynamoBirthdayRepository implements IBirthdayRepository {
             }
             throw error
         }
+    }
+
+    async findByBirthDate(date: MonthDay): Promise<Birthday[]> {
+        const command = new QueryCommand({
+            TableName: this.tableName,
+            IndexName: 'BirthDateIndex',
+            KeyConditionExpression: 'birthDate = :birthDate',
+            ExpressionAttributeValues: {
+                ':birthDate': date.toString(),
+            },
+        })
+
+        const response = await this.client.send(command)
+
+        if (!response.Items || response.Items.length === 0) return []
+
+        return response.Items.map((item) => Birthday.fromPlainObject(item))
     }
 
     async delete(id: BirthdayId): Promise<void> {

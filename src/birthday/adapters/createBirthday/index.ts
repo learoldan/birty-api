@@ -2,8 +2,10 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoBirthdayRepository } from '../../infrastructure/dynamoBirthdayRepository'
 import { createBirthday } from '../../application/createBirthday'
 import { TokenService } from '../../../shared/services/tokenService'
+import { DynamoUserRepository } from '../../../user/infrastructure/dynamoUserRepository'
 
 const repository = new DynamoBirthdayRepository()
+const userRepository = new DynamoUserRepository()
 
 export const handler = async (
     event: APIGatewayProxyEvent,
@@ -12,19 +14,32 @@ export const handler = async (
         // Get userId from token
         const userId = await TokenService.getUserIdFromToken(event)
 
+        // Look up user to get denormalized email and name
+        const user = await userRepository.findByCognitoSub(userId)
+        if (!user) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ error: 'User not found' }),
+            }
+        }
+
+        const userEmail = user.getEmail().getValue()
+        const userName = `${user.getFirstNames()} ${user.getLastNames()}`
+
         // Parse request body
         const body = JSON.parse(event.body || '{}')
 
-        const { name, birthDate, notes, alerts } = body
+        const { name, birthDate, notes } = body
 
         // Create birthday
         const birthday = await createBirthday(
             {
                 userId,
+                userEmail,
+                userName,
                 name,
                 birthDate,
                 notes,
-                alerts,
             },
             repository,
         )

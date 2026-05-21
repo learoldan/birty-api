@@ -116,10 +116,11 @@ export class BirthDate {
 export interface BirthdayProps {
     id: BirthdayId
     userId: string
+    userEmail: string
+    userName: string
     name: string
     birthDate: BirthDate
     notes?: string
-    alerts?: MonthDay[]
     createdAt?: Date
     updatedAt?: Date
 }
@@ -127,20 +128,22 @@ export interface BirthdayProps {
 export class Birthday {
     private readonly id: BirthdayId
     private readonly userId: string
+    private readonly userEmail: string
+    private readonly userName: string
     private name: string
     private birthDate: BirthDate
     private notes?: string
-    private alerts: MonthDay[]
     private readonly createdAt: Date
     private updatedAt: Date
 
     constructor(props: BirthdayProps) {
         this.id = props.id
         this.userId = props.userId
+        this.userEmail = props.userEmail
+        this.userName = props.userName
         this.name = props.name
         this.birthDate = props.birthDate
         this.notes = props.notes
-        this.alerts = props.alerts || []
         this.createdAt = props.createdAt || new Date()
         this.updatedAt = props.updatedAt || new Date()
     }
@@ -154,6 +157,14 @@ export class Birthday {
         return this.userId
     }
 
+    getUserEmail(): string {
+        return this.userEmail
+    }
+
+    getUserName(): string {
+        return this.userName
+    }
+
     getName(): string {
         return this.name
     }
@@ -164,10 +175,6 @@ export class Birthday {
 
     getNotes(): string | undefined {
         return this.notes
-    }
-
-    getAlerts(): MonthDay[] {
-        return this.alerts
     }
 
     getCreatedAt(): Date {
@@ -186,28 +193,16 @@ export class Birthday {
         this.updatedAt = new Date()
     }
 
-    addAlert(monthDay: MonthDay): void {
-        if (this.alerts.length >= 2) {
-            throw new Error('Cannot add more than 2 alerts')
-        }
-        this.alerts.push(monthDay)
-        this.updatedAt = new Date()
-    }
-
-    removeAlert(monthDay: MonthDay): void {
-        this.alerts = this.alerts.filter((a) => !a.equals(monthDay))
-        this.updatedAt = new Date()
-    }
-
     // Convert to plain object for persistence
     toPlainObject(): any {
         return {
             id: this.id.getValue(),
             userId: this.userId,
+            userEmail: this.userEmail,
+            userName: this.userName,
             name: this.name,
             birthDate: this.birthDate.getValue().toString(),
             notes: this.notes,
-            alerts: this.alerts.map((d) => d.toString()),
             createdAt: this.createdAt.toISOString(),
             updatedAt: this.updatedAt.toISOString(),
         }
@@ -218,12 +213,11 @@ export class Birthday {
         return new Birthday({
             id: new BirthdayId(data.id),
             userId: data.userId,
+            userEmail: data.userEmail,
+            userName: data.userName,
             name: data.name,
             birthDate: new BirthDate(data.birthDate),
             notes: data.notes,
-            alerts: (data.alerts || []).map((d: string) =>
-                MonthDay.fromString(d),
-            ),
             createdAt: new Date(data.createdAt),
             updatedAt: new Date(data.updatedAt),
         })

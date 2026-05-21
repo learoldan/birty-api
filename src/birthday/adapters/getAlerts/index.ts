@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoBirthdayRepository } from '../../infrastructure/dynamoBirthdayRepository'
 import { DynamoReminderRepository } from '../../infrastructure/dynamoReminderRepository'
-import { addAlert } from '../../application/addAlert'
+import { getAlerts } from '../../application/getAlerts'
 import { TokenService } from '../../../shared/services/tokenService'
 
 const birthdayRepository = new DynamoBirthdayRepository()
@@ -22,31 +22,26 @@ export const handler = async (
             }
         }
 
-        const body = JSON.parse(event.body || '{}')
-        const { date } = body
-
-        await addAlert(
-            { id, userId, date },
+        const reminders = await getAlerts(
+            id,
+            userId,
             birthdayRepository,
             reminderRepository,
         )
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: 'Alert added successfully' }),
+            body: JSON.stringify({
+                alerts: reminders.map((r) => r.toPlainObject()),
+            }),
         }
     } catch (error: any) {
-        console.error('Error adding alert:', error)
+        console.error('Error getting alerts:', error)
         const statusCode = error.message.includes('not found')
             ? 404
             : error.message.includes('Unauthorized')
               ? 403
-              : error.message.includes('required') ||
-                  error.message.includes('Cannot add') ||
-                  error.message.includes('Invalid') ||
-                  error.message.includes('must be')
-                ? 400
-                : 500
+              : 500
         return {
             statusCode,
             body: JSON.stringify({

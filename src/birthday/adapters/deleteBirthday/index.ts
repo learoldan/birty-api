@@ -1,9 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoBirthdayRepository } from '../../infrastructure/dynamoBirthdayRepository'
+import { DynamoReminderRepository } from '../../infrastructure/dynamoReminderRepository'
 import { deleteBirthday } from '../../application/deleteBirthday'
 import { TokenService } from '../../../shared/services/tokenService'
 
-const repository = new DynamoBirthdayRepository()
+const birthdayRepository = new DynamoBirthdayRepository()
+const reminderRepository = new DynamoReminderRepository()
 
 export const handler = async (
     event: APIGatewayProxyEvent,
@@ -25,7 +27,7 @@ export const handler = async (
         }
 
         // Delete birthday
-        await deleteBirthday(id, userId, repository)
+        await deleteBirthday(id, userId, birthdayRepository, reminderRepository)
 
         return {
             statusCode: 200,
