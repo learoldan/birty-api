@@ -28,6 +28,9 @@ provider:
         USERS_TABLE: ${self:service}-users-${self:provider.stage}
         BIRTHDAYS_TABLE: ${self:service}-birthdays-${self:provider.stage}
         REMINDERS_TABLE: ${self:service}-reminders-${self:provider.stage}
+
+        RESEND_API_KEY: ${env:RESEND_API_KEY}
+        RESEND_FROM_EMAIL: ${env:RESEND_FROM_EMAIL, 'Birty <noreply@birty.app>'}
     iam:
         role:
             statements:
@@ -106,6 +109,8 @@ functions:
     addAlert: ${file(src/birthday/adapters/addAlert/addAlert.yml)}
     removeAlert: ${file(src/birthday/adapters/removeAlert/removeAlert.yml)}
     getAlerts: ${file(src/birthday/adapters/getAlerts/getAlerts.yml)}
+    sendBirthdayEmails: ${file(src/birthday/adapters/sendBirthdayEmails/sendBirthdayEmails.yml)}
+    sendReminderEmails: ${file(src/birthday/adapters/sendReminderEmails/sendReminderEmails.yml)}
 
 resources:
     Resources:
