@@ -29,7 +29,7 @@ provider:
         BIRTHDAYS_TABLE: ${self:service}-birthdays-${self:provider.stage}
         REMINDERS_TABLE: ${self:service}-reminders-${self:provider.stage}
 
-        RESEND_API_KEY: ${env:RESEND_API_KEY}
+        RESEND_API_KEY: ${env:RESEND_API_KEY, ''}
         RESEND_FROM_EMAIL: ${env:RESEND_FROM_EMAIL, 'Birty <noreply@birty.app>'}
     iam:
         role:

@@ -1,7 +1,5 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export interface SendEmailParams {
     to: string
     subject: string
@@ -9,6 +7,12 @@ export interface SendEmailParams {
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<void> {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+        throw new Error('RESEND_API_KEY environment variable is not set')
+    }
+
+    const resend = new Resend(apiKey)
     const from = process.env.RESEND_FROM_EMAIL || 'Birty <noreply@birty.app>'
 
     const { error } = await resend.emails.send({
