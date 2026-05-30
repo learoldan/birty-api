@@ -102,6 +102,8 @@ functions:
     login: ${file(src/auth/adapters/login/login.yml)}
     validate: ${file(src/auth/adapters/validate/validate.yml)}
     changePassword: ${file(src/auth/adapters/changePassword/changePassword.yml)}
+    forgotPassword: ${file(src/auth/adapters/forgotPassword/forgotPassword.yml)}
+    confirmForgotPassword: ${file(src/auth/adapters/confirmForgotPassword/confirmForgotPassword.yml)}
     createBirthday: ${file(src/birthday/adapters/createBirthday/createBirthday.yml)}
     listBirthdays: ${file(src/birthday/adapters/listBirthdays/listBirthdays.yml)}
     getBirthday: ${file(src/birthday/adapters/getBirthday/getBirthday.yml)}

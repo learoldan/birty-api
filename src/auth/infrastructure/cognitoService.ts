@@ -6,6 +6,8 @@ import {
     AdminConfirmSignUpCommand,
     ConfirmSignUpCommand,
     ChangePasswordCommand,
+    ForgotPasswordCommand,
+    ConfirmForgotPasswordCommand,
 } from '@aws-sdk/client-cognito-identity-provider'
 
 export interface CognitoConfig {
@@ -183,6 +185,68 @@ export class CognitoService {
                 )
             }
             throw new Error(error.message || 'Failed to change password')
+        }
+    }
+
+    async forgotPassword(email: string): Promise<void> {
+        const command = new ForgotPasswordCommand({
+            ClientId: this.clientId,
+            Username: email,
+        })
+
+        try {
+            await this.client.send(command)
+        } catch (error: any) {
+            if (error.name === 'UserNotFoundException') {
+                throw new Error('User not found')
+            }
+            if (error.name === 'NotAuthorizedException') {
+                throw new Error('User is not confirmed')
+            }
+            if (error.name === 'LimitExceededException') {
+                throw new Error(
+                    'Attempt limit exceeded, please try again later',
+                )
+            }
+            throw new Error(
+                error.message || 'Failed to initiate password reset',
+            )
+        }
+    }
+
+    async confirmForgotPassword(
+        email: string,
+        confirmationCode: string,
+        newPassword: string,
+    ): Promise<void> {
+        const command = new ConfirmForgotPasswordCommand({
+            ClientId: this.clientId,
+            Username: email,
+            ConfirmationCode: confirmationCode,
+            Password: newPassword,
+        })
+
+        try {
+            await this.client.send(command)
+        } catch (error: any) {
+            if (error.name === 'CodeMismatchException') {
+                throw new Error('Invalid confirmation code')
+            }
+            if (error.name === 'ExpiredCodeException') {
+                throw new Error('Confirmation code has expired')
+            }
+            if (error.name === 'UserNotFoundException') {
+                throw new Error('User not found')
+            }
+            if (error.name === 'InvalidPasswordException') {
+                throw new Error('New password does not meet requirements')
+            }
+            if (error.name === 'LimitExceededException') {
+                throw new Error(
+                    'Attempt limit exceeded, please try again later',
+                )
+            }
+            throw new Error(error.message || 'Failed to reset password')
         }
     }
 }
