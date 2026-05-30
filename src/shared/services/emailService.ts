@@ -13,7 +13,8 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     }
 
     const resend = new Resend(apiKey)
-    const from = process.env.RESEND_FROM_EMAIL || 'Birty <noreply@birty.app>'
+    const from =
+        process.env.RESEND_FROM_EMAIL || 'Birty <onboarding@resend.dev>'
 
     const { error } = await resend.emails.send({
         from,

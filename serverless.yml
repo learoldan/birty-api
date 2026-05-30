@@ -30,7 +30,8 @@ provider:
         REMINDERS_TABLE: ${self:service}-reminders-${self:provider.stage}
 
         RESEND_API_KEY: ${env:RESEND_API_KEY, ''}
-        RESEND_FROM_EMAIL: ${env:RESEND_FROM_EMAIL, 'Birty <noreply@birty.app>'}
+        RESEND_FROM_EMAIL:
+            ${env:RESEND_FROM_EMAIL, 'Birty <onboarding@resend.dev>'}
     iam:
         role:
             statements:
